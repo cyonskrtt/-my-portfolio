@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đèn kéo quân — Nguyễn Văn Khải</title>
+<meta name="description" content="Bài tập 19 - Đèn kéo quân với hiệu ứng JavaScript, FlowWave Creative Studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Đèn kéo quân — Bài tập 19, Kiểm tra giữa kỳ LTW
+   Dùng chung design tokens với portfolio FlowWave
+============================================================ */
+:root {
+  --bg: #FAF7F2;
+  --surface: #FFFFFF;
+  --surface-2: #F2ECE2;
+  --ink: #1C1A17;
+  --muted: #6F675C;
+  --line: #E4DBCD;
+  --accent: #C2521E;
+  --accent-2: #0F766E;
+  --shadow: 0 18px 40px -24px rgba(28, 26, 23, 0.45);
+  --radius: 16px;
+  --maxw: 1080px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-theme="dark"] {
+  --bg: #141009;
+  --surface: #1E1810;
+  --surface-2: #271F15;
+  --ink: #F2EDE4;
+  --muted: #A89C89;
+  --line: #342A1D;
+  --accent: #F2914A;
+  --accent-2: #5EEAD4;
+  --shadow: 0 22px 48px -26px rgba(0, 0, 0, 0.8);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .4s var(--ease), color .4s var(--ease);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1, h2, .display { font-family: 'Space Grotesk', sans-serif; line-height: 1.08; letter-spacing: -0.02em; font-weight: 600; }
+a { color: inherit; text-decoration: none; }
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 1.25rem; }
+.eyebrow { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; display: inline-block; margin-bottom: .9rem; }
+
+/* ---------- Nav (đồng bộ portfolio, có link quay lại) ---------- */
+.nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.nav__inner { max-width: var(--maxw); margin: 0 auto; padding: .85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: .55rem; }
+.brand__dot { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+.back-link { font-size: .9rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; transition: color .25s var(--ease); }
+.back-link:hover { color: var(--accent); }
+.toggle { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; font-size: 1.05rem; transition: transform .3s var(--ease), border-color .25s; margin-left: .6rem; }
+.toggle:hover { transform: rotate(-18deg) scale(1.05); border-color: var(--accent); }
+
+/* ---------- Hero strip ---------- */
+.head { padding: clamp(2.5rem, 6vw, 4rem) 0 1.5rem; text-align: center; }
+.head h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin-bottom: .6rem; }
+.head h1 .grad { background: linear-gradient(100deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.head p { color: var(--muted); max-width: 52ch; margin: 0 auto; }
+.hint {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin-top: 1.1rem; padding: .55rem 1.1rem;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); font-size: .85rem; color: var(--muted);
+}
+.hint b { color: var(--ink); }
+
+/* ---------- Lantern stage ---------- */
+.stage {
+  padding: 2rem 0 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+.lantern-scene {
+  --size: min(78vw, 360px);
+  width: var(--size);
+  height: var(--size);
+  perspective: 1400px;
+  position: relative;
+}
+.lantern-scene::before {
+  /* dây treo đèn */
+  content: "";
+  position: absolute;
+  top: -42px; left: 50%;
+  width: 2px; height: 42px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+.lantern-scene::after {
+  /* chóp đỉnh đèn */
+  content: "";
+  position: absolute;
+  top: -10px; left: 50%;
+  width: 26px; height: 26px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: var(--shadow);
+}
+.lantern {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: spin 16s linear infinite;
+}
+.lantern.is-paused { animation-play-state: paused; }
+@keyframes spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+.face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow);
+  background: var(--surface-2);
+  transition: border-color .3s var(--ease), transform .3s var(--ease);
+  backface-visibility: hidden;
+}
+.face img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.face__label {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: .5rem .7rem .6rem;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0,0,0,.55), transparent);
+}
+.face:hover { border-color: var(--accent); }
+/* 6 mặt của lăng trụ lục giác — bán kính phụ thuộc --size */
+.face:nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--size) * 0.5)); }
+.face:nth-child(2) { transform: rotateY(60deg)  translateZ(calc(var(--size) * 0.5)); }
+.face:nth-child(3) { transform: rotateY(120deg) translateZ(calc(var(--size) * 0.5)); }
+.face:nth-child(4) { transform: rotateY(180deg) translateZ(calc(var(--size) * 0.5)); }
+.face:nth-child(5) { transform: rotateY(240deg) translateZ(calc(var(--size) * 0.5)); }
+.face:nth-child(6) { transform: rotateY(300deg) translateZ(calc(var(--size) * 0.5)); }
+
+.status {
+  font-size: .85rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); transition: background .25s; }
+.status.paused .dot { background: var(--accent); }
+
+.controls { display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .7rem 1.3rem; border-radius: 999px; font-weight: 600; font-size: .9rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; transition: transform .25s var(--ease), border-color .25s, color .25s; }
+.btn:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); }
+.btn--primary { background: var(--ink); color: var(--bg); border-color: transparent; }
+.btn--primary:hover { color: var(--bg); border-color: transparent; box-shadow: var(--shadow); }
+
+/* ---------- Combo note (kết hợp bài 17.3 / portfolio) ---------- */
+.combo { padding: 0 0 3rem; }
+.combo .card {
+  max-width: 680px; margin: 0 auto;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 1.4rem 1.6rem;
+  display: flex; gap: 1rem; align-items: flex-start;
+  box-shadow: var(--shadow);
+}
+.combo .card span.ico { font-size: 1.4rem; }
+.combo h3 { font-size: 1.02rem; margin-bottom: .3rem; }
+.combo p { font-size: .9rem; color: var(--muted); }
+.combo a { color: var(--accent); font-weight: 600; }
+
+/* ---------- Bài tập 18 — kết quả trắc nghiệm ---------- */
+.quiz18 { padding: 0 0 3rem; }
+.quiz18 .inner {
+  max-width: 680px; margin: 0 auto;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 1.6rem;
+  box-shadow: var(--shadow); text-align: center;
+}
+.quiz18 .eyebrow { margin-bottom: .4rem; }
+.quiz18 h3 { font-size: 1.15rem; margin-bottom: .5rem; }
+.quiz18 p.desc { font-size: .9rem; color: var(--muted); margin-bottom: 1.2rem; }
+.quiz18 img {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: block;
+  margin: 0 auto;
+}
+.quiz18 .stats-row {
+  display: flex; justify-content: center; gap: 1.8rem;
+  margin-top: 1.2rem; flex-wrap: wrap;
+}
+.quiz18 .stat-mini .num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem; color: var(--accent); }
+.quiz18 .stat-mini .label { font-size: .78rem; color: var(--muted); }
+
+.footer { border-top: 1px solid var(--line); padding: 1.6rem 0; }
+.footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .8rem; }
+.footer small { color: var(--muted); font-size: .82rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lantern { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav__inner">
+    <a href="#top" class="brand"><span class="brand__dot"></span> FlowWave</a>
+    <div style="display:flex;align-items:center;">
+      <a href="index.html" class="back-link">← Về Portfolio (Bài 17.3)</a>
+      <button class="toggle" data-toggle-theme aria-label="Đổi giao diện">🌙</button>
+    </div>
+  </div>
+</header>
+
+<section class="head" id="top">
+  <div class="wrap">
+    <span class="eyebrow">Bài tập 19 · Kiểm tra giữa kỳ LTW</span>
+    <h1>Đèn kéo <span class="grad">quân</span></h1>
+    <p>6 mặt đèn kể một câu chuyện diễu hành liền mạch — trống hội, rước ngựa, kiệu rước, múa lân, rước cờ và dẫn trâu — xoay vòng tròn liên tục. Đưa chuột vào một mặt để đèn dừng lại, rê ra để đèn quay tiếp.</p>
+    <div class="hint">💡 <span>Trạng thái hiện tại: <b data-status-text>Đang quay</b></span></div>
+  </div>
+</section>
+
+<section class="stage">
+  <div class="lantern-scene">
+    <div class="lantern" id="lantern">
+      <!-- 6 mặt đèn kéo quân — đoàn diễu hành: trống → ngựa → kiệu → múa lân → cờ → trâu -->
+      <div class="face"><img src="1.PNG" alt="Cảnh đánh trống khai hội"><span class="face__label">01 · Trống hội</span></div>
+      <div class="face"><img src="2.PNG" alt="Cảnh cưỡi ngựa rước lọng"><span class="face__label">02 · Rước ngựa</span></div>
+      <div class="face"><img src="3.PNG" alt="Cảnh kiệu rước"><span class="face__label">03 · Kiệu rước</span></div>
+      <div class="face"><img src="4.PNG" alt="Cảnh múa lân"><span class="face__label">04 · Múa lân</span></div>
+      <div class="face"><img src="5.PNG" alt="Cảnh rước cờ và đèn"><span class="face__label">05 · Rước cờ</span></div>
+      <div class="face"><img src="6.PNG" alt="Cảnh dẫn trâu"><span class="face__label">06 · Dẫn trâu</span></div>
+    </div>
+  </div>
+
+  <div class="status" data-status>
+    <span class="dot"></span>
+    <span data-status-detail>Đèn đang quay vòng tròn…</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn--primary" id="toggleBtn">⏸ Dừng / ▶ Quay</button>
+    <button class="btn" id="speedBtn">⚡ Đổi tốc độ</button>
+  </div>
+</section>
+
+<section class="quiz18">
+  <div class="wrap">
+    <div class="inner">
+      <span class="eyebrow">Bài tập 18 · Trắc nghiệm</span>
+      <h3>Kết quả kiểm tra HTML, CSS &amp; JavaScript</h3>
+      <p class="desc">Ảnh chụp kết quả bài trắc nghiệm chương HTML/CSS/JS, làm trên Wayground (Quizizz).</p>
+      <img src="bai18_ketqua.PNG" alt="Kết quả bài trắc nghiệm HTML, CSS và JavaScript — 9 trên 28, độ chính xác 40%">
+      <div class="stats-row">
+        <div class="stat-mini"><div class="num">9/28</div><div class="label">Hạng</div></div>
+        <div class="stat-mini"><div class="num">40%</div><div class="label">Độ chính xác</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="combo">
+  <div class="wrap">
+    <div class="card">
+      <span class="ico">🔗</span>
+      <div>
+        <h3>Kết hợp với Bài tập 17.3</h3>
+        <p>Trang Đèn kéo quân này được liên kết trực tiếp từ trang chủ portfolio (<a href="index.html">index.html</a>) — chính là bài 17.3, vốn đã có sẵn các hiệu ứng JavaScript: chuyển đổi dark/light mode, menu di động và hiệu ứng cuộn (scroll reveal). Hai bài được nối với nhau qua liên kết điều hướng ở thanh menu phía trên.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <small>© <span data-year>2026</span> Nguyễn Văn Khải · Bài tập 19 — Đèn kéo quân</small>
+    <small><a href="index.html" style="color:var(--accent);font-weight:600;">← Quay lại Portfolio</a></small>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Đèn kéo quân — script.js
+   - Quay vòng tròn liên tục (CSS animation, điều khiển bằng JS)
+   - Hover vào 1 mặt -> dừng quay; rê ra -> quay tiếp
+   - Nút bấm: Dừng/Quay thủ công, đổi tốc độ quay
+   - Dark mode toggle (đồng bộ với portfolio, dùng cùng localStorage key)
+============================================================ */
+(() => {
+  'use strict';
+
+  /* ---------- Dark mode (đồng bộ key với portfolio) ---------- */
+  const root = document.documentElement;
+  const STORAGE_KEY = 'flowwave-theme';
+  const saved = (() => { try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; } })();
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initial = saved || (prefersDark ? 'dark' : 'light');
+  root.setAttribute('data-theme', initial);
+
+  function setThemeIcon(theme) {
+    document.querySelectorAll('[data-toggle-theme]').forEach((btn) => {
+      btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    });
+  }
+  setThemeIcon(initial);
+  document.querySelectorAll('[data-toggle-theme]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      setThemeIcon(next);
+      try { localStorage.setItem(STORAGE_KEY, next); } catch (e) {}
+    });
+  });
+
+  /* ---------- Đèn kéo quân: quay / dừng ---------- */
+  const lantern = document.getElementById('lantern');
+  const faces = document.querySelectorAll('.face');
+  const statusEl = document.querySelector('[data-status]');
+  const statusText = document.querySelector('[data-status-text]');
+  const statusDetail = document.querySelector('[data-status-detail]');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const speedBtn = document.getElementById('speedBtn');
+
+  let manuallyPaused = false; // do nút bấm
+  let hovering = false;       // do rê chuột vào 1 mặt
+  const speeds = [16, 9, 28]; // giây / vòng: bình thường, nhanh, chậm
+  let speedIndex = 0;
+
+  function refreshSpinState() {
+    const shouldPause = manuallyPaused || hovering;
+    lantern.classList.toggle('is-paused', shouldPause);
+    statusEl.classList.toggle('paused', shouldPause);
+    statusText.textContent = shouldPause ? 'Đã dừng' : 'Đang quay';
+    statusDetail.textContent = shouldPause
+      ? (hovering ? 'Đang dừng vì chuột đang ở trên một mặt đèn.' : 'Đèn đang dừng thủ công — bấm nút để quay lại.')
+      : 'Đèn đang quay vòng tròn…';
+  }
+
+  // Hover vào từng mặt -> dừng; rê ra -> quay tiếp
+  faces.forEach((face) => {
+    face.addEventListener('mouseenter', () => { hovering = true; refreshSpinState(); });
+    face.addEventListener('mouseleave', () => { hovering = false; refreshSpinState(); });
+    // Hỗ trợ cảm ứng (mobile/tablet): chạm giữ để dừng
+    face.addEventListener('touchstart', () => { hovering = true; refreshSpinState(); }, { passive: true });
+    face.addEventListener('touchend', () => { hovering = false; refreshSpinState(); }, { passive: true });
+  });
+
+  // Nút Dừng/Quay thủ công
+  toggleBtn.addEventListener('click', () => {
+    manuallyPaused = !manuallyPaused;
+    refreshSpinState();
+  });
+
+  // Nút đổi tốc độ quay
+  speedBtn.addEventListener('click', () => {
+    speedIndex = (speedIndex + 1) % speeds.length;
+    lantern.style.animationDuration = speeds[speedIndex] + 's';
+  });
+
+  refreshSpinState();
+
+  /* ---------- Năm hiện tại ---------- */
+  const yearEl = document.querySelector('[data-year]');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  console.log('Đèn kéo quân loaded ✦');
+})();
+</script>
+</body>
+</html>
